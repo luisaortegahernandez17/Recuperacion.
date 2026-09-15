@@ -170,3 +170,61 @@ Scenario 1: [name]
 - Non-functional requirements → `04-requirements/non-functional.md`
 - Traceability matrix → `04-requirements/traceability-matrix.md`
 - API contracts derived from these HUs → `07-api/contracts/openapi/`
+
+# User Stories — Backlog (Huila Travel Expedition)
+
+> **What to fill in here:** The product's user story backlog.
+
+> Each user story uses the standard format with acceptance criteria in Given/When/Then format.
+
+--
+
+## Backlog Status
+
+| Cut | Sprint | Total User Stories | Refined | In Progress | Completed |
+|--------|-----------|---------|-------------|-----------|
+| Cut 1 | Sprint 1-2 | 10 | 10 | 0 | 0 |
+| Cut 2 | Sprint 3-4 | 10 | 10 | 0 | 0 |
+
+--
+
+## Epics
+
+| ID | Epic | Description |
+|----|------|-------------|
+| EP-001 | Authentication and Agency Management | Legal registration, RNT validation, secure login, and institutional profile management for travel agencies in Huila. |
+EP-002 | Regional Tourism Catalog and Offerings | Creation, editing, categorization (ecotourism, adventure, culture), and temporary deactivation of tour packages. |
+EP-003 | Search, Reservations, and Inventory | Search engine by municipality, availability/slot management by date, reservations, and operational blocks. |
+EP-004 | Reputation, Notifications, and Administration | Verified reviews, content moderation, transactional emails, and a general statistics dashboard. |
+
+---
+
+## User Stories
+
+### HU-AUTH-001 — Travel Agency Registration {#HU-AUTH-001}
+
+**Epic:** EP-001
+
+ -**As** the legal representative of a travel agency in Huila, 
+ **I want** to register my company's business and legal information (NIT, RNT) 
+ **so that** I can request corporate access to the HTE platform.
+
+**Acceptance Criteria:**
+
+Scenario 1: Successful Agency Application Registration
+Since the agency enters the registration form with a valid NIT and RNT,
+When they submit the completed form,
+The system creates the account in PENDING status and issues a pending verification alert.
+
+Scenario 2: Attempted registration with a duplicate NIT or RNT
+Since the agency enters a previously registered NIT or RNT,
+when they press the registration button,
+the system displays the message "The NIT or RNT entered is already registered on the platform.
+
+ ##Definition of Done:
+
+- [ ] Code reviewed and approved
+- [ ] Unit tests written (agency.register.spec.ts)
+- [ ] Acceptance criteria verified
+- [ ] API contract updated (POST /api/v1/auth/register/agency)
+- [ ] Deployed to staging  
