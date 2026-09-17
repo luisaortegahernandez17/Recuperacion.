@@ -33,7 +33,9 @@ Laravel offers a mature out-of-the-box ecosystem (Eloquent ORM, migrations, queu
 --------------|------|------|-----------------------|
 
 | Option A — Laravel 10/11 (PHP 8.2+) | Powerful Eloquent ORM, native migration handling, integrated queues, and Sanctum/Passport ecosystem. | Lower throughput in requests per second compared to compiled languages. | — (chosen) |
+
 | Option B — Node.js (NestJS / TypeScript) | Excellent handling of asynchronous I/O and high real-time performance. | Longer initial setup time and learning curve for modular architecture compared to Laravel. | Longer initial development time required to configure the ORM layer and migrations. |
+
 | Option C — Python (Django) | Very powerful native admin panel and robust ORM. | Less flexibility for fine-coupling decoupled REST APIs without complex additional modules. | Less agility in structuring the catalog-oriented REST API and project reservations. |
 
 
@@ -97,7 +99,9 @@ The platform manages multiple user profiles with strictly differentiated permiss
 | Alternative | Pros | Cons | Reason for discarding |
 |-------------|------|------|-----------------------|
 | Option A — Laravel Sanctum (Token API) + RBAC | Lightweight, stateless, native, ideal for SPA web interfaces and future mobile apps. | Requires manual token revocation management for invalidated sessions. | — (chosen) |
+
 | Option B — Traditional Sessions (Cookies / Stateful) | Easy implementation on monolithic server-rendered architectures. | Incompatible with decoupled mobile clients and pure REST API services. | Discarded due to strict coupling to the web browser. |
+
 | Option C — Auth0 / Firebase Auth | Complete delegation of security to a third-party identity provider. | Scalable operating costs and difficulty in linking local verification states (RNT). | Discarded due to external financial dependency and poor integration with RNT verification. |
 
 
@@ -161,7 +165,9 @@ Travel agencies publish photographs to promote their destinations and tourism pa
 | Alternative | Pros | Cons | Reason for discarding |
 |-------------|------|------|-----------------------|
 | Option A — Server Compression (.webp < 500KB) | Ensures RNF2 compliance regardless of the user's upload size. | CPU/Memory consumption on the server during the conversion process. | — (chosen) |
+
 Option B — Client-side compression only (JS) | Reduces network traffic during upload to the server. | Depends on the user's browser and does not guarantee the integrity of the uploaded file. | Discarded due to lack of direct control over the business rule (RNF2). |
+
 Option C — Direct storage without compression | Instant upload process on the backend. | Degrades website loading speed and saturates storage. | Discarded due to direct violation of the RNF2 requirement. |
 
 
@@ -226,7 +232,9 @@ Pessimistic locking ensures that only one transaction at a time can read and dec
 | Alternative | Pros | Cons | Reason for discarding |
 |-------------|------|------|-----------------------|
 | Option A — Pessimistic Lock (SELECT FOR UPDATE) | Ensures absolute atomicity and zero overbooking of slots. | Temporarily locks the record in the database for the duration of the transaction. | — (chosen) |
+
 | Option B — Simple verification without locking | High read and write speed. | Prone to race conditions under high concurrency, generating overbooking. | Discarded due to the risk of data inconsistency. |
+
 Option C — Distributed locks in Redis | Extremely fast in memory. | Increases operational complexity to keep Redis synchronized with MySQL. | Discarded due to unnecessary complexity for the initial scale of the project. |
 
 
