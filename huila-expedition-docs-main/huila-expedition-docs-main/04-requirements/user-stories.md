@@ -1,176 +1,3 @@
-# User Stories — Backlog
-
-> **What to fill in here:** The product's User Story backlog.
-> Each HU uses the standard format with Acceptance Criteria in Given/When/Then.
-> Refined (Ready) HUs go to the sprint. Unrefined ones are epics or ideas.
-
----
-
-## Backlog status
-
-| Cut | Sprint | Total HUs | Refined | In progress | Completed |
-|-----|--------|-----------|---------|-------------|-----------|
-| Cut 1 | Sprint 1-2 | [N] | [N] | [N] | [N] |
-| Cut 2 | Sprint 3-4 | [N] | [N] | [N] | [N] |
-
----
-
-## Epics
-
-| ID | Epic | Description |
-|----|------|-------------|
-| EP-001 | [Epic name] | [Brief description of the epic's objective] |
-| EP-002 | [Name] | [Description] |
-
----
-
-## User Stories
-
-### HU-001 — [Descriptive name] {#HU-001}
-
-**Epic:** EP-00X
-
-> **As** [user role]
-> **I want** [action / feature]
-> **so that** [benefit / value received]
-
-**Acceptance Criteria:**
-
-```gherkin
-Scenario 1: [Scenario name — happy path]
-  Given [initial context]
-  When  [user action]
-  Then  [expected result]
-  And   [additional condition if applicable]
-
-Scenario 2: [Scenario name — edge case / error]
-  Given [context]
-  When  [action]
-  Then  [error result, e.g.: validation message is shown]
-```
-
-**Definition of Done:**
-- [ ] Code reviewed and approved
-- [ ] Unit tests written
-- [ ] Acceptance criteria verified (manual or automated)
-- [ ] API contract updated if applicable
-- [ ] Deployed to staging
-
-| Field | Value |
-|-------|-------|
-| Story Points | [1 / 2 / 3 / 5 / 8 / 13] |
-| Priority | [Must Have / Should Have / Could Have] |
-| Target sprint | Sprint [N] |
-| Assigned to | [Name] |
-| Status | [Backlog / Ready / In Progress / Done] |
-| Dependencies | [HU-00X, HU-00Y] |
-| Affected service(s) | [service-name] |
-
----
-
-### HU-002 — [Descriptive name] {#HU-002}
-
-**Epic:** EP-00X
-
-> **As** [role]
-> **I want** [action]
-> **so that** [benefit]
-
-**Acceptance Criteria:**
-
-```gherkin
-Scenario 1: [Happy path]
-  Given [context]
-  When  [action]
-  Then  [result]
-
-Scenario 2: [Error case]
-  Given [context]
-  When  [invalid action]
-  Then  error "[error code]" is shown with message "[message]"
-```
-
-| Field | Value |
-|-------|-------|
-| Story Points | [N] |
-| Priority | [Must Have] |
-| Target sprint | Sprint [N] |
-| Status | [Backlog] |
-
----
-
-## Rules for writing HUs
-
-### 1. The role matters
-Do not write "As a user" — that says nothing. Use the specific role:
-```
-✓ As a system administrator
-✓ As a registered customer
-✓ As an inventory operator
-✗ As a user
-✗ As a person
-```
-
-### 2. The benefit justifies the work
-The "so that" must describe a business benefit, not redescribe the action:
-```
-✓ so that I can manage my orders without calling support
-✗ so that I can see my orders (this only describes the feature)
-```
-
-### 3. ACs are verifiable
-Each AC must be verifiable manually or automatable as a test:
-```
-✓ Then the system shows a message "Order #123 confirmed"
-✓ Then the confirmation email arrives in less than 30 seconds
-✗ Then the system works well (not verifiable)
-✗ Then the user is satisfied (not verifiable)
-```
-
-### 4. One HU = one unit of value
-If the HU has 15 ACs, it is probably 3 HUs.
-The team must be able to complete it in one sprint (maximum 2 weeks).
-
----
-
-## Ready-to-copy HU template
-
-```markdown
-### HU-00X — [Name] {#HU-00X}
-
-**Epic:** EP-00X
-
-> **As** [role]
-> **I want** [action]
-> **so that** [benefit]
-
-**Acceptance Criteria:**
-
-\```gherkin
-Scenario 1: [name]
-  Given [context]
-  When  [action]
-  Then  [result]
-\```
-
-| Field | Value |
-|-------|-------|
-| Story Points | |
-| Priority | |
-| Target sprint | |
-| Status | Backlog |
-| Dependencies | |
-```
-
----
-
-## Correlations
-
-- Full template with DoD checklist → `04-requirements/_template-hu.md`
-- Non-functional requirements → `04-requirements/non-functional.md`
-- Traceability matrix → `04-requirements/traceability-matrix.md`
-- API contracts derived from these HUs → `07-api/contracts/openapi/`
-
 # User Stories — Backlog (Huila Travel Expedition)
 
 > **What to fill in here:** The product's user story backlog.
@@ -272,13 +99,13 @@ Then the system displays the message "Invalid Credentials" and does not generate
 
 | Field | Value |
 |-------|-------|
-| Story Points | [ 5 ] |
+| Story Points | [ 3 ] |
 | Priority | [Must Have] |
 | Target sprint | Sprint 1 |
 | Assigned to | [Backend Lead] |
 | Status | [ Ready ] |
-| Dependencies | [No one] |
-| Affected service(s) | [auth-service,agency-service] |      
+| Dependencies | [HU-AUTH-001] |
+| Affected service(s) | [auth-service] |      
 
 ---
 
@@ -312,13 +139,13 @@ The system rejects the request and informs the user that the link has expired
 
 | Field | Value |
 |-------|-------|
-| Story Points | [ 5 ] |
-| Priority | [Must Have] |
+| Story Points | [ 3 ] |
+| Priority | [Should Have] |
 | Target sprint | Sprint 1 |
-| Assigned to | [Backend Lead] |
+| Assigned to | [Fullstack Developer] |
 | Status | [ Ready ] |
-| Dependencies | [No one] |
-| Affected service(s) | [auth-service,agency-service] |
+| Dependencies | [HU-AUTH-001, HU-AUTH-002] |
+| Affected service(s) | [auth-service, notification-service] |
 
 ---
 
@@ -352,13 +179,13 @@ The agency's status changes to REJECTED, and they receive a notification with th
 
 | Field | Value |
 |-------|-------|
-| Story Points | [ 5 ] |
+| Story Points | [ 3 ] |
 | Priority | [Must Have] |
 | Target sprint | Sprint 1 |
 | Assigned to | [Backend Lead] |
 | Status | [ Ready ] |
-| Dependencies | [No one] |
-| Affected service(s) | [auth-service,agency-service] |
+| Dependencies | [HU-AUTH-001] |
+| Affected service(s) | [admin-service, agency-service] |
 
 ---
 
@@ -392,13 +219,13 @@ Then the system blocks those fields, specifying that they require administrative
 
 | Field | Value |
 |-------|-------|
-| Story Points | [ 5 ] |
-| Priority | [Must Have] |
-| Target sprint | Sprint 1 |
-| Assigned to | [Backend Lead] |
+| Story Points | [ 2 ] |
+| Priority | [Should Have] |
+| Target sprint | Sprint 2 |
+| Assigned to | [Frontend Lead] |
 | Status | [ Ready ] |
-| Dependencies | [No one] |
-| Affected service(s) | [auth-service,agency-service] |
+| Dependencies | [HU-ADMIN-002] |
+| Affected service(s) | [media-service,agency-service] |
 
 ---
 
@@ -434,11 +261,11 @@ Then the system displays the required validation messages
 |-------|-------|
 | Story Points | [ 5 ] |
 | Priority | [Must Have] |
-| Target sprint | Sprint 1 |
-| Assigned to | [Backend Lead] |
+| Target sprint | Sprint 2 |
+| Assigned to | [Fullstack Developer] |
 | Status | [ Ready ] |
-| Dependencies | [No one] |
-| Affected service(s) | [auth-service,agency-service] |
+| Dependencies | [HU-AUTH-002-HU-ADMIN-002] |
+| Affected service(s) | [catalog-service] |
 
 ---
 
@@ -472,13 +299,13 @@ Then the system requires the selection of at least one primary category
 
 | Field | Value |
 |-------|-------|
-| Story Points | [ 5 ] |
-| Priority | [Must Have] |
-| Target sprint | Sprint 1 |
-| Assigned to | [Backend Lead] |
+| Story Points | [ 2 ] |
+| Priority | [Should Have] |
+| Target sprint | Sprint 2 |
+| Assigned to | [Frontend Lead] |
 | Status | [ Ready ] |
-| Dependencies | [No one] |
-| Affected service(s) | [auth-service,agency-service] |
+| Dependencies | [HU-CATALOG-001] |
+| Affected service(s) | [catalog-service] |
 
 ---
 
@@ -512,13 +339,13 @@ Then the plan goes to ACTIVE status and becomes visible again in the catalog
 
 | Field | Value |
 |-------|-------|
-| Story Points | [ 5 ] |
-| Priority | [Must Have] |
-| Target sprint | Sprint 1 |
+| Story Points | [ 2 ] |
+| Priority | [Could Have] |
+| Target sprint | Sprint 2 |
 | Assigned to | [Backend Lead] |
 | Status | [ Ready ] |
-| Dependencies | [No one] |
-| Affected service(s) | [auth-service,agency-service] |
+| Dependencies | [HU-CATALOG-001] |
+| Affected service(s) | [catalog-service] |
 
 ---
 
@@ -552,13 +379,13 @@ Then the system rejects the file and displays the invalid format/size message
 
 | Field | Value |
 |-------|-------|
-| Story Points | [ 5 ] |
-| Priority | [Must Have] |
-| Target sprint | Sprint 1 |
-| Assigned to | [Backend Lead] |
+| Story Points | [ 3 ] |
+| Priority | [Should Have] |
+| Target sprint | Sprint 2 |
+| Assigned to | [Fullstack Developer] |
 | Status | [ Ready ] |
-| Dependencies | [No one] |
-| Affected service(s) | [auth-service,agency-service] |
+| Dependencies | [HU-CATALOG-001] |
+| Affected service(s) | [media-service,catalog-service] |
 
 ---
 
@@ -594,11 +421,11 @@ Then retry sending up to 3 times using the DLQ queue
 |-------|-------|
 | Story Points | [ 5 ] |
 | Priority | [Must Have] |
-| Target sprint | Sprint 1 |
+| Target sprint | Sprint 2 |
 | Assigned to | [Backend Lead] |
 | Status | [ Ready ] |
-| Dependencies | [No one] |
-| Affected service(s) | [auth-service,agency-service] |
+| Dependencies | [HU-AUTH-001, HU-BOOK-001] |
+| Affected service(s) | [notification-service] |
 
 ---
 
@@ -632,386 +459,381 @@ Then the system displays the message "No plans were found that match the selecte
 
 | Field | Value |
 |-------|-------|
-| Story Points | [ 5 ] |
+| Story Points | [ 3 ] |
 | Priority | [Must Have] |
-| Target sprint | Sprint 1 |
-| Assigned to | [Backend Lead] |
+| Target sprint | Sprint 3 |
+| Assigned to | [Frontend Lead] |
 | Status | [ Ready ] |
-| Dependencies | [No one] |
-| Affected service(s) | [auth-service,agency-service] |
+| Dependencies | [HU-CATALOG-001] |
+| Affected service(s) | [catalog-service] |
 
 ---
 
-HU-INVENT-001 — Calendar and Availability Management {#HU-INVENT-001}
-Epic: EP-003
+### HU-INVENT-001 — Calendar and Availability Management {#HU-INVENT-001}
 
-As a travel agency,
+**Epic:** EP-003
 
-I want to set a limit on the number of people allowed per operating date
+**As** a travel agency,
+**I want** to set a limit on the number of people allowed per operating date
+**so that** the system automatically controls availability and prevents overbooking.
 
-so that the system automatically controls availability and prevents overbooking.
+**Acceptance Criteria:**
 
-Acceptance Criteria:
-
-Gherkin
 Scenario 1: Successful allocation of slots by date
-
 Given that the agency selects a date range and allocates a maximum of 15 people per day
-
 When the configuration is saved
-
 Then the system initializes the inventory with 15 slots available per date
 
 Scenario 2: Slots sold out on a specified date
-
 Given that confirmed reservations have filled all 15 slots for a specific day
-
 When a traveler attempts to check that date
-
 Then the system marks the day as SOLD OUT and blocks the selection
-Definition of Done:
 
-[ ] Code reviewed and approved
+## Definition of Done:
 
-[ ] Unit tests written (inventory.capacity.spec.ts)
+- [ ] Code reviewed and approved
+- [ ] Unit tests written (inventory.capacity.spec.ts)
+- [ ] Acceptance criteria verified
+- [ ] API contract updated (PUT /api/v1/plans/{id}/inventory)
+- [ ] Deployed to staging
 
-[ ] Acceptance criteria verified
-
-[ ] API contract updated (PUT /api/v1/plans/{id}/inventory)
-
-[ ] Deployed to staging
+| Field | Value |
+|-------|-------|
+| Story Points | [ 5 ] |
+| Priority | [Must Have] |
+| Target sprint | Sprint 3 |
+| Assigned to | [Backend Lead] |
+| Status | [ Ready ] |
+| Dependencies | [HU-CATALOG-001] |
+| Affected service(s) | [inventory-service] |      
 
 ---
 
-HU-INVENT-002 — Blocking Dates Due to Contingency or Operational Issues {#HU-INVENT-002}
-Epic: EP-003
+### HU-INVENT-002 — Blocking Dates Due to Contingency or Operational Issues {#HU-INVENT-002}
 
-As a travel agency,
+**Epic:** EP-003
 
-I want to manually disable specific days on a plan's calendar
+**As** a travel agency,
+**I want** to manually disable specific days on a plan's calendar
+**so that** no requests are received on maintenance dates or non-operational holidays.
 
-so that no requests are received on maintenance dates or non-operational holidays.
+**Acceptance Criteria:**
 
-Acceptance Criteria:
-
-Gherkin
 Scenario 1: Manual Date Blocking
-
 Given that the agency selects a date range and checks "Block for operational reasons"
-
 When they confirm the action
-
 Then the system changes the status of those days to BLOCKED in the public calendar
 
 Scenario 2: Attempted Blocking with Active Reservations
-
 Given that there are pending requests for the dates to be blocked
-
 When the agency executes the block
-
 Then the system warns them that they must reject or reschedule the previous requests
-Definition of Done:
 
-[ ] Code reviewed and approved
+## Definition of Done:
 
-[ ] Unit tests written (inventory.block.spec.ts)
+- [ ] Code reviewed and approved
+- [ ] Unit tests written (inventory.block.spec.ts)
+- [ ] Acceptance criteria verified
+- [ ] API contract updated (POST /api/v1/plans/{id}/block-dates)
+- [ ] Deployed to staging
 
-[ ] Acceptance criteria verified
-
-[ ] API contract updated (POST /api/v1/plans/{id}/block-dates)
-
-[ ] Deployed to staging
+| Field | Value |
+|-------|-------|
+| Story Points | [ 3 ] |
+| Priority | [Should Have] |
+| Target sprint | Sprint 3 |
+| Assigned to | [Fullstack Developer] |
+| Status | [ Ready ] |
+| Dependencies | [HU-INVENT-001] |
+| Affected service(s) | [inventory-service] |      
 
 ---
 
-HU-BOOK-001 — Tourist Plan Reservation Request {#HU-BOOK-001}
-Epic: EP-003
+### HU-BOOK-001 — Tourist Plan Reservation Request {#HU-BOOK-001}
 
-As a tourist
+**Epic:** EP-003
 
-I want to request a reservation by selecting the date, number of travelers, and my contact information
+**As** a tourist
+**I want** to request a reservation by selecting the date, number of travelers, and my contact information
+**so that** I can secure my spot in the desired tourist experience.
 
-so that I can secure my spot in the desired tourist experience.
+**Acceptance Criteria:**
 
-Acceptance Criteria:
-
-Gherkin
 Scenario 1: Successful Booking with Available Spaces
-
 Given that the tourist selects a date with sufficient space in the inventory
-
 When they submit their booking details
-
 Then the system generates a unique booking code, temporarily deducts the available space, and leaves the booking in PENDING status
 
 Scenario 2: Booking Attempt with Insufficient Spaces
-
 Given that the tourist attempts to book 5 spaces for a date that only has 2 available
-
 When they click "Request Booking"
-
 Then the system prevents the transaction and displays the message "Only 2 spaces are available for this date"
 
-Definition of Done:
+## Definition of Done:
 
-[ ] Code reviewed and approved
+- [ ] Code reviewed and approved
+- [ ] Unit tests written (booking.create.spec.ts)
+- [ ] Acceptance criteria verified
+- [ ] API contract updated (POST /api/v1/bookings)
+- [ ] Deployed to staging
 
-[ ] Unit tests written (booking.create.spec.ts)
-
-[ ] Acceptance criteria verified
-
-[ ] API contract updated (POST /api/v1/bookings)
-
-[ ] Deployed to staging
+| Field | Value |
+|-------|-------|
+| Story Points | [ 8 ] |
+| Priority | [Must Have] |
+| Target sprint | Sprint 3 |
+| Assigned to | [Backend Lead] |
+| Status | [ Ready ] |
+| Dependencies | [HU-INVENT-001, HU-SEARCH-001] |
+| Affected service(s) | [booking-service, inventory-service] |      
 
 ---
 
-HU-BOOK-002 — Agency Reservation Management and Confirmation {#HU-BOOK-002}
-Epic: EP-003
+### HU-BOOK-002 — Agency Reservation Management and Confirmation {#HU-BOOK-002}
 
-As a travel agency,
+**Epic:** EP-003
 
-I want to review received reservation requests and confirm their payment/status
-
-so that I can ensure the logistics of the trip.
+**As** a travel agency,
+**I want** to review received reservation requests and confirm their payment/status
+**so that** I can ensure the logistics of the trip.
 
 
 Acceptance Criteria:
 
-Gherkin
 Scenario 1: Booking Confirmation by the Agency
-
 Given that the agency verifies the payment confirmation for a booking in PENDING status
-
 When they press "Confirm Booking"
-
 The booking then changes to APPROVED status and an email with the voucher is sent to the traveler
 
 Scenario 2: Booking Rejection or Cancellation
-
 Given that the agency does not receive payment within the deadline
-
 When they press "Reject Booking"
-
 Then the system changes the booking to CANCELLED and returns the slots to inventory
-Definition of Done:
 
-[ ] Code reviewed and approved
+## Definition of Done:
 
-[ ] Unit tests written (booking.status.spec.ts)
+- [ ] Code reviewed and approved
+- [ ] Unit tests written (booking.status.spec.ts)
+- [ ] Acceptance criteria verified
+- [ ] API contract updated (PATCH /api/v1/bookings/{id}/status)
+- [ ] Deployed to staging
 
-[ ] Acceptance criteria verified
+| Field | Value |
+|-------|-------|
+| Story Points | [ 5 ] |
+| Priority | [Must Have] |
+| Target sprint | Sprint 3 |
+| Assigned to | [Fullstack Developer] |
+| Status | [ Ready ] |
+| Dependencies | [HU-BOOK-001] |
+| Affected service(s) | [booking-service, inventory-service, notification-service] |      
 
-[ ] API contract updated (PATCH /api/v1/bookings/{id}/status)
-
-[ ] Deployed to staging
 
 ---
 
-HU-BOOK-003 — Tourist Booking History and Inquiry {#HU-BOOK-003}
-Epic: EP-003
+### HU-BOOK-003 — Tourist Booking History and Inquiry {#HU-BOOK-003}
 
-As a tourist
+**Epic:** EP-003
 
-I want to check the status of my booking by entering my unique code and email address
+**As** a tourist
+**I want** to check the status of my booking by entering my unique code and email address
+**so that** I can verify the confirmation and details of my trip.
 
-so that I can verify the confirmation and details of my trip.
 
+**Acceptance Criteria:**
 
-Acceptance Criteria:
-
-Gherkin
 Scenario 1: Successful Booking Inquiry
-
 Given that the traveler enters their alphanumeric booking code and correct email address
-
 When they press "Check"
-
 Then the system displays the complete details of the plan, date, and current status
 
 Scenario 2: Inquiry with Incorrect Data
-
 Given that the combination of code and email address does not match any record
-
 When they execute the search
-
 Then the system displays the alert "Booking Not Found"
-Definition of Done:
 
-[ ] Code reviewed and approved
+## Definition of Done:
 
-[ ] Unit tests written (booking.lookup.spec.ts)
+- [ ] Code reviewed and approved
+- [ ] Unit tests written (booking.lookup.spec.ts)
+- [ ] Acceptance criteria verified
+- [ ] API contract updated (POST /api/v1/bookings/lookup)
+- [ ] Deployed to staging
 
-[ ] Acceptance criteria verified
-
-[ ] API contract updated (POST /api/v1/bookings/lookup)
-
-[ ] Deployed to staging
+| Field | Value |
+|-------|-------|
+| Story Points | [ 2 ] |
+| Priority | [Should Have] |
+| Target sprint | Sprint 3 |
+| Assigned to | [Frontend Lead] |
+| Status | [ Ready ] |
+| Dependencies | [HU-BOOK-001] |
+| Affected service(s) | [booking-service] |      
 
 ---
 
-HU-ADMIN-001 — General Control Statistical Panel {#HU-ADMIN-001}
-Epic: EP-004
+### HU-ADMIN-001 — General Control Statistical Panel {#HU-ADMIN-001}
 
-As HTE administrator
+**Epic:** EP-004
 
-I want to visualize a consolidated dashboard with metrics on reservations, active agencies, and plans
+**As** HTE administrator
+**I want** to visualize a consolidated dashboard with metrics on reservations, active agencies, and plans
+**so that** I can make governance decisions and promote tourism in the region.
 
-so that I can make governance decisions and promote tourism in the region.
+**Acceptance Criteria:**
 
-Acceptance Criteria:
-
-Gherkin
 Scenario 1: Administrative Dashboard Display
-
 Given that the administrator logs in and accesses the main panel
-
 When the interface loads
-
 Then the system calculates and displays the total confirmed bookings, estimated revenue, and agencies in ACTIVE status
 
 Scenario 2: Filtering by Date Range
-
 Given that the administrator selects the last quarter
-
 When the filter is applied
-
 Then the dashboard metrics are recalculated to reflect only the activity of that period
-Definition of Done:
 
-[ ] Code reviewed and approved
+## Definition of Done:
 
-[ ] Unit tests written (admin.metrics.spec.ts)
+- [ ] Code reviewed and approved
+- [ ] Unit tests written (admin.metrics.spec.ts)
+- [ ] Acceptance criteria verified
+- [ ] API contract updated (GET /api/v1/admin/dashboard)
+- [ ] Deployed to staging
 
-[ ] Acceptance criteria verified
-
-[ ] API contract updated (GET /api/v1/admin/dashboard)
-
-[ ] Deployed to staging
+| Field | Value |
+|-------|-------|
+| Story Points | [ 5 ] |
+| Priority | [Should Have] |
+| Target sprint | Sprint 4 |
+| Assigned to | [Fullstack Developer] |
+| Status | [ Ready ] |
+| Dependencies | [HU-AUTH-002, HU-BOOK-002] |
+| Affected service(s) | [admin-service] |      
 
 ---
 
-HU-REVIEW-001 — Rating and Review of Tourist Services {#HU-REVIEW-001}
-Epic: EP-004
+### HU-REVIEW-001 — Rating and Review of Tourist Services {#HU-REVIEW-001}
 
-As a tourist who completed a trip,
+**Epic:** EP-004
 
-I want to assign a rating from 1 to 5 stars and post a review of the experience
+**As** a tourist who completed a trip,
+**I want** to assign a rating from 1 to 5 stars and post a review of the experience
+**so that** other users know the quality of service offered by the agency.
 
-so that other users know the quality of service offered by the agency.
+**Acceptance Criteria:**
 
-Acceptance Criteria:
-
-Gherkin
 Scenario 1: Verified Review Post
-
 Given that the traveler has a booking code in APPROVED and completed status
-
 When they submit their 5-star rating and a comment
-
 Then the system registers the review in PENDING status for moderation
 
 Scenario 2: Attempted Rating without a Prior Booking
-
 Given that a user attempts to review a plan without a completed booking
-
 When they attempt to submit the form
-
 Then the system denies the registration, indicating that a confirmed booking is required
 
-Definition of Done:
+## Definition of Done:
 
-[ ] Code reviewed and approved
+- [ ] Code reviewed and approved
+- [ ] Unit tests written (review.submit.spec.ts)
+- [ ] Acceptance criteria verified
+- [ ] API contract updated (POST /api/v1/reviews)
+- [ ] Deployed to staging
 
-[ ] Unit tests written (review.submit.spec.ts)
-
-[ ] Acceptance criteria verified
-
-[ ] API contract updated (POST /api/v1/reviews)
-
-[ ] Deployed to staging
+| Field | Value |
+|-------|-------|
+| Story Points | [ 3 ] |
+| Priority | [Could Have] |
+| Target sprint | Sprint 4 |
+| Assigned to | [Frontend Lead] |
+| Status | [ Ready ] |
+| Dependencies | [HU-BOOK-002] |
+| Affected service(s) | [review-service] |      
 
 ---
 
-HU-REVIEW-002 — Review Moderation by Management {#HU-REVIEW-002}
-Epic: EP-004
+### HU-REVIEW-002 — Review Moderation by Management {#HU-REVIEW-002}
 
-As the HTE system administrator,
+**Epic:** EP-004
 
-I want to audit the comments submitted by tourists
+**As** the HTE system administrator,
+**I want** to audit the comments submitted by tourists
+**so that** I can reject content containing offensive or inappropriate language.
 
-so that I can reject content containing offensive or inappropriate language.
+**Acceptance Criteria:**
 
-Acceptance Criteria:
-
-Gherkin
 Scenario 1: Review Approval
-
 Given that the administrator reviews a respectful review in PENDING status
-
 When they press "Approve"
-
 The review then moves to PUBLISHED status and updates the plan average
 
 Scenario 2: Rejection for Inappropriate Content
-
 Given that a review violates community guidelines
-
 When the administrator presses "Reject"
-
 The review then moves to REJECTED status and is not displayed in the catalog
-Definition of Done:
 
-[ ] Code reviewed and approved
+## Definition of Done:
 
-[ ] Unit tests written (review.moderation.spec.ts)
+- [ ] Code reviewed and approved
+- [ ] Unit tests written (review.moderation.spec.ts)
+- [ ] Acceptance criteria verified
+- [ ] API contract updated (PATCH /api/v1/reviews/{id}/moderation)
+- [ ] Deployed to staging
 
-[ ] Acceptance criteria verified
-
-[ ] API contract updated (PATCH /api/v1/reviews/{id}/moderation)
-
-[ ] Deployed to staging
+| Field | Value |
+|-------|-------|
+| Story Points | [ 3 ] |
+| Priority | [Could Have] |
+| Target sprint | Sprint 4 |
+| Assigned to | [Backend Lead] |
+| Status | [ Ready ] |
+| Dependencies | [HU-REVIEW-OO1] |
+| Affected service(s) | [review-service, admin-service] |      
 
 ---
 
-HU-REPORT-001 — Exporting Operational Reports for Agencies {#HU-REPORT-001}
-Epic: EP-004
+### HU-REPORT-001 — Exporting Operational Reports for Agencies {#HU-REPORT-001}
 
-As a travel agency,
+**Epic:** EP-004
 
-I want to download reports in Excel/CSV format with a list of reservations by date
+**As** a travel agency,
+**I want** to download reports in Excel/CSV format with a list of reservations by date
+**so that** I can coordinate transportation logistics and passenger guides.
 
-so that I can coordinate transportation logistics and passenger guides.
+**Acceptance Criteria:**
 
-Acceptance Criteria:
-
-Gherkin
 Scenario 1: Successful download of operational report
-
 Given that the agency selects a plan and a date range with confirmed bookings
-
 When they click "Export Report (CSV/Excel)"
-
 Then the system generates and downloads a structured file with the list of attendees
 
 Scenario 2: Generation without available data
-
 Given that the agency requests the report for dates with no registered bookings
-
 When they request the export
-
 Then the system reports that there is no data to generate the document
-Definition of Done:
 
-[ ] Code reviewed and approved
+##Definition of Done:
 
-[ ] Unit tests written (report.export.spec.ts)
+- [ ] Code reviewed and approved
+- [ ] Unit tests written (report.export.spec.ts)
+- [ ] Acceptance criteria verified
+- [ ] API contract updated (GET /api/v1/reports/bookings/export)
+- [ ] Deployed to staging
 
-[ ] Acceptance criteria verified
+| Field | Value |
+|-------|-------|
+| Story Points | [ 3 ] |
+| Priority | [Could Have] |
+| Target sprint | Sprint 4 |
+| Assigned to | [Fullstack Developer] |
+| Status | [ Ready ] |
+| Dependencies | [HU-BOOK-002] |
+| Affected service(s) | [booking-service, report-service] |      
 
-[ ] API contract updated (GET /api/v1/reports/bookings/export)
-
-[ ] Deployed to staging
+## Correlations
+Non-functional requirements → 04-requirements/non-functional.md
+Traceability matrix → 04-requirements/traceability-matrix.md
+API contracts derived from these HUs → 07-api/contracts/openapi/
 
 ---
 
