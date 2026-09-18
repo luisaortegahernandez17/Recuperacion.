@@ -1,184 +1,165 @@
-# System Architecture Overview
+# System Architecture Overview: Huila Travel Expedition 
 
-> **What to fill in here:** The architectural view is the technical snapshot of the system.
-> It includes the C4 system and container diagram, service list, and architectural principles.
-> This document is created after the main ADRs and guides the implementation.
-
----
-
-## 1. Adopted architectural style
-
-**Style:** [Microservices / Microservices + Event-Driven / Modular Monolith / etc.]
-
-**Justification:** [Why this style for this project and these requirements]
-
-**Reference ADR:** [`ADR-001-architectural-style.md`](decisions/records/)
-
----
+## 1. Adopted Architectural Style
+ **Style:** Modular Monolith with Hexagonal Architecture (Laravel 10+) transitioning to REST API Services.
+ 
+ **Justification:** Given the initial scale of the project for the Huila department, the infrastructure resources (shared hosting: 1 vCPU, 1 GB RAM in the first phase, scalable to VPS), and the development team, a Modular Monolith architecture with clean code (Clean Architecture / Hexagonal) in Laravel offers the best cost-benefit ratio, maintainability, and delivery speed. It allows for the decoupling of domains (Agencies, Tourists, Reservations, Administration) through independent modules with their own delimited context, leaving the structure ready to extract microservices or independent services in the future without rewriting the business logic. 
+ 
+ **ADR Reference:** ADR-001-architectural-style.md
 
 ## 2. C4 Diagram — System Level (Context)
 
-> Shows how the system fits in the world. External actors and external systems.
+Shows how the Huila Travel Expedition ecosystem relates to external users and third-party services/systems.
 
+```text
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        Huila Travel Expedition System (HTE)                            │
+│                                                                                        │
+│  ┌───────────────────────────┐  ┌───────────────────────────┐  ┌────────────────────┐  │
+│  │    Tourists Module /      │  │    Agencies Module /      │  │    Admin Module /  │  │
+│  │    Catalog & Tour Search  │  │    Services & Offer Mgt.  │  │ Moderation & Stats │  │
+│  └─────────────┬─────────────┘  └─────────────┬─────────────┘  └─────────┬──────────┘  │
+│                │                              │                          │             │
+│                └──────────────────────────────┼──────────────────────────┘             │
+│                                               │                                        │
+└───────────────────────────────────────────────┼────────────────────────────────────────┘
+                                                │
+                 ┌──────────────────────────────┴──────────────────────────────┐
+                 │                                                             │
+        ┌────────▼──────────────┐                                    ┌─────────▼─────────────┐
+        │   External Services   │                                    │    Users / Actors     │
+        │ - Payment Gateways    │                                    │ - Tourists (Nat/Int)  │
+        │ - WhatsApp Bus. API   │                                    │ - Local Agencies      │
+        │ - Transactional SMTP  │                                    │ - HTE Administrator   │
+        └───────────────────────┘                                    └───────────────────────┘
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        System [Name]                                │
-│                                                                     │
-│  ┌─────────────┐    ┌─────────────┐    ┌────────────────────────┐  │
-│  │ [Service A] │    │ [Service B] │    │ [Service C]            │  │
-│  │             │    │             │    │                        │  │
-│  │ Port: 3001  │    │ Port: 3002  │    │ Port: 3003             │  │
-│  └──────┬──────┘    └──────┬──────┘    └──────────┬─────────────┘  │
-│         │                  │                       │                │
-│         └──────────────────┴───────────────────────┘                │
-│                            │ Message Bus                             │
-└────────────────────────────│────────────────────────────────────────┘
-                             │
-                  ┌──────────┴──────────┐
-                  │                     │
-         ┌────────▼──────┐    ┌─────────▼──────┐
-         │ API Gateway   │    │ Admin Dashboard │
-         │               │    │                 │
-         └────────┬──────┘    └─────────────────┘
-                  │
-         ┌────────▼──────────────┐
-         │    External clients   │
-         │  (Web, Mobile, API)   │
-         └───────────────────────┘
-```
-
----
-
 ## 3. C4 Diagram — Container Level
 
-> Shows the processes, databases, and main communication channels.
-
-```
-Replace this block with the project-specific diagram.
-
-Recommended tools:
-- PlantUML (see 08-uml/diagrams/source/)
-- Mermaid (natively supported on GitHub)
-- draw.io / Lucidchart
-```
-
-**Mermaid example:**
+ Shows the main processes, databases, and communication channels of the HTE platform.
 
 ```mermaid
 graph TB
-  subgraph "System [Name]"
-    GW[API Gateway<br/>:8080]
-    SA[Service A<br/>:3001]
-    SB[Service B<br/>:3002]
-    BUS[(Message Bus<br/>Kafka/RabbitMQ)]
-    DBA[(Service A DB<br/>PostgreSQL)]
-    DBB[(Service B DB<br/>MongoDB)]
-  end
 
-  WEB[Web App] --> GW
-  MOB[Mobile] --> GW
-  GW --> SA
-  GW --> SB
-  SA --> DBA
-  SB --> DBB
-  SA --> BUS
-  BUS --> SB
+subgraph "Huila Travel Expedition Ecosystem (HTE)"
+
+GW[Web Server / NGINX - Apache<br/>:443 HTTPS]
+
+
+subgraph "Modular Monolith (Laravel 10+ / PHP 8.2+)"
+
+MOD_AUTH[Authentication & Roles Module<br/>JWT / Session Auth]
+
+MOD_CAT[Catalog & Search Module<br/>Filters by Municipality, Category, Price]
+
+MOD_RES[Booking Engine Module<br/>Availability Validation and Calendar]
+
+MOD_AGE[Agency Management Module<br/>Services, Photos, Rates, RNT]
+
+MOD_ADM[Administration Module<br/>Review Moderation, Stats, PDF Reports]
+
+end
+
+DB[(MySQL 8.0 DB<br/>Agencies, Services, Reservations, Reviews)] 
+CACHE[(Redis Cache<br/>Sessions, Search Cache & Rate Limit)] 
+STORAGE[(Local/Cloud Storage<br/>Compressed Images < 500KB)] 
+end 
+
+CLIENT_WEB[Tourist / Web Browser] --> GW 
+CLIENT_AGE[Local Agency / Panel] --> GW 
+CLIENT_ADM[Administrator / Panel] --> GW 
+
+GW --> MOD_AUTH 
+GW --> MOD_CAT 
+GW --> MOD_RES 
+GW --> MOD_AGE 
+GW --> MOD_ADM 
+
+MOD_AUTH --> DB 
+MOD_CAT --> DB 
+MOD_RES --> DB 
+MOD_AGE --> DB 
+MOD_ADM --> DB 
+
+MOD_CAT --> CACHE 
+MOD_AGE --> STORAGE 
+
+MOD_RES --> PAY[External Payment Gateway<br/>Wompi / PayU / MercadoPago] 
+MOD_RES --> MAIL[SMTP Server / Mail Transactional] 
+MOD_ADM --> PDF[DOMPDF / Snappy PDF Generator] 
+MOD_AGE --> WA[WhatsApp Business API]
 ```
+## 4. Service Catalog (Internal Modules)
 
----
+| # | Module / Service | Responsibility | Subsystem / Context | Database / Storage | Communication Type |
+----|------------------|----------------|---------------------|--------------------|--------------------|
+1 | `auth-module` | Authentication, registration with RNT validation, RBAC (Admin, Agency, Tourist) | Administration / Core | MySQL (`users`, `roles`, `agencies`) | HTTP REST / Encrypted Session
+2 | `catalog-module` | Search, filtering by municipality/price/duration, featured plans | Tourists | MySQL + Redis (Cache) | REST API / Blade Views
+3 | `booking-module` | Booking engine, calendar date verification, ACID transactions | Tourists / Agencies[cite: 3] | MySQL (`bookings`, `schedules`) | REST API / Events (Sync/Async) |
+4 | `agency-module` | CRUD operations for tour packages, image upload/compression (<500KB),  | Agencies | MySQL (`services`, `rates`) + Storage | REST API / Multi-part Forms |
+5 | `review-module` | Rating (1-5 stars), experience reviews, manual moderation | Tourists / Admin | MySQL (`reviews`) | REST API |
+| 6 | `reporting-module` | Generating dashboard statistics and exporting PDF reports| Administration / Agencies | MySQL (Queries) + DOMPDF | REST / Binary Stream (PDF) |
+| 7 | `notification-module` | Automatically sending confirmation emails and WhatsApp alerts | Cross-functional | SMTP Server / WhatsApp API | Async Queues (Laravel Queue) |
 
-## 4. Service catalog
+## 5. Architectural Principles
 
-| # | Service | Responsibility | Port | DB | Communication type |
-|---|---------|---------------|------|-----|-------------------|
-| 1 | [api-gateway] | Routing, auth, rate limiting | 8080 | Redis (cache) | HTTP Proxy |
-| 2 | [auth-service] | Registration, login, JWT tokens | 3001 | PostgreSQL | REST + Events |
-| 3 | [xxx-service] | [responsibility] | 300X | [DB] | [REST/Async] |
+**P1: API-First & Mobile-First Design**
+The entire interface for tourists and agencies is designed with a *Mobile-First* approach (responsive from 320px) and the logic is exposed using clean contracts (JSON / REST API) to facilitate multi-terminal support and future mobile applications.
 
-> Full detail per service in `09-microservices/service-catalog.md`
+**P2: Transactional Integrity of Reservations (Zero Overbooking)**
+The booking engine guarantees secure concurrency through transactional locks (ACID) in the MySQL 8.0 database, ensuring that a fully booked slot or date in the availability calendar does not suffer from overbooking.
 
----
+**P3: Automatic Resource Optimization** All multimedia files uploaded by agencies (destination images) are compressed in the background to ensure they do not exceed 500 KB per file, protecting storage capacity and ensuring reduced loading times.
 
-## 5. Architectural principles
+**P4: Regulatory Compliance and Security by Design (Habeas Data & SSL)**[cite: 3] The processing of personal data requires explicit consent with a timestamp (Law 1581)[cite: 3]. Communication is 100% HTTPS, and passwords are processed using Laravel's native secure hashing scheme (`bcrypt`).
 
-These principles guide the project's technical decisions. Before making an important decision,
-verify it is consistent with these principles.
-
-### P1: API-First
-Design the API contract (OpenAPI) before implementing the service.
-Contracts are the source of truth for consumers.
-
-### P2: Database per Service
-Each service has its own database. No service directly accesses another service's database.
-Communication is always through API or events.
-
-### P3: Fail Fast, Recover Gracefully
-Detect errors early (validation at the edge). When an external service fails,
-use Circuit Breaker to prevent cascades. Always define a fallback.
-
-### P4: Observability by Design
-From day 1: structured JSON logs, metrics with Prometheus,
-distributed traces with Jaeger/Zipkin. It is not optional or a story for "later".
-
-### P5: [Additional principle name]
-[Description]
-
----
+**P5: Scalable Modularity (Isolated Migration to VPS)**[cite: 3] The system is developed in Laravel 10+ and structured in domain-isolated modules[cite: 3]. It initially runs on shared hosting (1 vCPU, 1 GB RAM) and allows migration to a dedicated VPS environment in less than 8 hours of technical work without modifying the codebase.
 
 ## 6. Adopted architectural patterns
 
 | Pattern | Adopted | Reference |
 |---------|---------|-----------|
-| API Gateway | Yes | `05-architecture/pattern-guide.md` |
-| Database per Service | Yes | ADR-00X |
-| CQRS | No (review in Q3) | |
-| Event Sourcing | No | |
-| Circuit Breaker | Yes | ADR-00X |
-| Saga (choreographed) | Yes | ADR-00X |
-| Outbox Pattern | Yes | ADR-00X |
-
----
+| Modular Monolith | Yes | `05-architecture/decisions/ADR-001-architectural-style.md` |
+| Hexagonal Architecture | Yes | `05-architecture/hexagonal-architecture.md` |
+| Repository Pattern | Yes | `05-architecture/pattern-guide.md` |
+| Data Transfer Objects (DTO) | Yes | `05-architecture/pattern-guide.md` |
+| Circuit Breaker / Fallback| Yes | `05-architecture/decisions/ADR-002-resilience-policy.md` |
+| Outbox / Async Queues | Yes | `05-architecture/decisions/ADR-003-async-notifications.md` |
+| CQRS | No (review in v2.0 | Evaluated for future high-concurrency scaling |
 
 ## 7. Cross-cutting concerns
-
-Transversal concerns that apply to ALL services:
+Transversal concerns that apply to ALL modules:
 
 | Concern | Adopted solution | Where it is configured |
-|---------|----------------|------------------------|
-| Authentication / Authorization | JWT + validation in API Gateway | `00-governance/security-policy.md` |
-| Logging | Structured JSON + Correlation ID | Shared logger in internal lib |
-| Tracing | OpenTelemetry → Jaeger | Middleware in each service |
-| Health Checks | GET /health (liveness) + GET /health/ready (readiness) | Service template |
-| Error format | Standard ErrorResponse | `07-api/contracts/openapi/_shared.yaml` |
-| Rate Limiting | At the API Gateway | Kong/NGINX configuration |
-| CORS | Configured in API Gateway | |
-| Circuit Breaker | Resiliency4j / opossum per service | Pattern in `pattern-guide.md` |
-
----
+| --- | --- | --- |
+| Authentication / Authorization | Laravel Middleware + RBAC (Spatie: Admin, Agency, Tourist) | `app/Http/Middleware/` & Policies |
+| Input Validation | Form Requests with structured Spanish JSON/HTML errors | `app/Http/Requests/` |
+| Error Handling | Standard Exception Handler with standard HTTP status codes | `app/Exceptions/Handler.php` |
+| Image Compression | Automatic background compression (< 500 KB / WebP) | `app/Services/ImageService.php` |
+| PDF Generation | DOMPDF binary stream generation | `app/Services/ReportService.php` |
+| Security & Encryption | SSL HTTPS redirection + `bcrypt` password hashing | `AppServiceProvider.php` & Web Server Config |
+| Logging & Audit | Monolog JSON format + Terms acceptance log (Habeas Data) | `config/logging.php` & `audit_logs` table |
+| Rate Limiting | Laravel Throttle Middleware (Login & Booking endpoints) | `app/Providers/RouteServiceProvider.php` |
 
 ## 8. Registered architectural technical debt
 
 | ID | Description | Impact | Priority | Target sprint |
-|----|-------------|--------|---------|--------------|
-| AT-001 | [description] | [high/medium/low] | [P1/P2/P3] | [Sprint X] |
-
-> See also: `15-project-control/technical-backlog.md`
-
----
+| --- | --- | --- | --- | --- |
+| AT-001 | Manual inventory synchronization (Lack of external Channel Manager) | Medium | P2 | Sprint 5 (Phase 2) |
+| AT-002 | Manual verification process of agency RNT numbers by Admin | Low | P3 | Sprint 4 |
+| AT-003 | Basic payment gateway integration without advanced Webhooks | Medium | P2 | Sprint 3 |
 
 ## 9. Planned evolution
 
 | Version | Architectural change | Motivation | Estimated date |
-|---------|---------------------|------------|----------------|
-| v2.0 | [e.g.: Migrate to gRPC for internal communication] | [Latency] | [Q4 2024] |
-
----
+| --- | --- | --- | --- |
+| v1.0 | Laravel Modular Monolith on Shared Hosting | Initial MVP launch to unify Huila tourism offer | Q2 2026 |
+| v1.5 | Infrastructure migration to Dedicated VPS (2 vCPU, 4 GB RAM) | Handle peak season traffic (> 50 concurrent users) | Q4 2026 |
+| v2.0 | Full REST API + Channel Manager & Native Mobile Apps | Sync with OTAs (Booking/Airbnb) and iOS/Android apps | Q2 2027 |
 
 ## Key correlations
-
 - Domain bounded contexts → `02-domain/domain-map.md`
 - Specific decision ADRs → `05-architecture/decisions/`
-- Hexagonal architecture per service → `05-architecture/hexagonal-architecture.md`
+- Hexagonal architecture per module → `05-architecture/hexagonal-architecture.md`
 - Applied patterns → `05-architecture/pattern-guide.md`
-- Per-service detail → `09-microservices/service-catalog.md`
-- UML diagrams → `08-uml/`
+- Service & module catalog detail → `09-microservices/service-catalog.md`
+- UML & C4 diagrams → `08-uml/`
