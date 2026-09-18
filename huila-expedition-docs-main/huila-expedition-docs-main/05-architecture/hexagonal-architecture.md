@@ -1,355 +1,434 @@
-# Hexagonal Architecture (Ports & Adapters)
+# Hexagonal Architecture (Ports and Adapters)
 
-> Hexagonal architecture, proposed by Alistair Cockburn, organizes a service so that the
-> **business domain is completely independent** of the surrounding technology.
-> The database, the web framework, the message broker — all are interchangeable details.
-> What matters is the business logic, which lives at the center.
+> The hexagonal architecture, proposed by Alistair Cockburn, organizes the system so that the **business domain is completely independent** of external technologies. The database, web framework, and email or payment services are interchangeable details. What is truly crucial is the business logic of **Huila Travel Expedition**, which resides at the heart of the application.
 
-> **Stack note:** The concepts in this document are valid for any language.
-> The code examples and folder structure specific to your technology are in:
-> - Node.js + TypeScript → [`_stacks/node-typescript.md`](../_stacks/node-typescript.md)
-> - Java + Spring Boot → [`_stacks/java-spring.md`](../_stacks/java-spring.md)
-> - Python + FastAPI → [`_stacks/python-fastapi.md`](../_stacks/python-fastapi.md)
-> - Go → [`_stacks/go.md`](../_stacks/go.md)
 
----
+> > **Note on the Technical Stack:** Although the principles of this architecture are universal, the implementation and code structure presented in this document are tailored specifically to the project's technical specifications:
+> - **Language and Framework:** PHP 8.2+ with Laravel 10+
+> - **Database & Cache:** MySQL 8.0 and Redis
+> - **Template Engine / API:** Blade / Tailwind CSS and REST API
 
-## The problem it solves
+### Hexagonal Architecture in Huila Travel Expedition:
 
-```
-❌ Traditional layered architecture:
+                  ┌─────────────────────────────────────────┐
+                  │          PRIMARY ADAPTERS               │
+                  │        (Driving / Input)                │
+                  └────────────────────┬────────────────────┘
+                                       │
+            ┌──────────────────────────┼──────────────────────────┐
+            ▼                          ▼                          ▼
+     [HTTP Controller]           [Artisan CLI]          [PHPUnit / Pest Test]
+            │                          │                          │
+            └──────────────────────────┼──────────────────────────┘
+                                       │
+                                       ▼
+                             ┌───────────────────┐
+                             │   DRIVING PORT    │  (Use Case Interface)
+                             └─────────┬─────────┘  e.g., CreateBookingUseCase
+                                       │
+                                       ▼
+                   ┌───────────────────────────────────────┐
+                   │               DOMAIN                  │
+                   │      (Huila Travel Expedition)        │
+                   │                                       │
+                   │   Entities: Booking, Agency, Plan     │
+                   │   Rules: RNT Validation, Capacity     │
+                   │    * No Laravel / Eloquent logic *    │
+                   └───────────────────┬───────────────────┘
+                                       │
+                                       ▼
+                             ┌───────────────────┐
+                             │    DRIVEN PORT    │  (Required Interface)
+                             └─────────┬─────────┘  e.g., BookingRepositoryPort
+                                       │
+            ┌──────────────────────────┼──────────────────────────┐
+            ▼                          ▼                          ▼ 
+    [Eloquent Repository]         [Wompi / PayU]             [SMTP Mailer]
+                                                         
+            └──────────────────────────┼──────────────────────────┘
+                                       │
+                  ┌────────────────────┴────────────────────┐
+                  │          SECONDARY ADAPTERS             │
+                  │        (Driven / Output)                │
+                  └─────────────────────────────────────────┘
 
-  [HTTP Controller]
-       ↓
-  [Service]
-       ↓
-  [Repository]
-       ↓
-  [Database]
+## Folder Structure
 
-Problem: The "Service" mixes business logic with framework calls.
-If you change the framework, you break the business. If you want to test the business,
-you need to simulate the database.
-```
-
-```
-✓ Hexagonal Architecture:
-
-  [HTTP Controller]  [CLI]  [Test]  ← Primary Adapters (enter the hexagon)
-          │            │      │
-          └────────────┴──────┘
-                       │
-                 [Driving Port]  ← Interface that defines the domain's API
-                       │
-               ┌───────────────┐
-               │               │
-               │    DOMAIN     │  ← Pure business logic, no external dependencies
-               │               │
-               └───────────────┘
-                       │
-                 [Driven Port]  ← Interface the domain needs from the outside world
-                       │
-          ┌────────────┴──────┐
-          │                   │
-  [DB Adapter]  [Kafka Adapter]  ← Secondary Adapters (exit the hexagon)
-```
-
----
-
-## Folder structure
+Within the Laravel app/ folder, we will organize the bounded contexts or main aggregates defined in the SRS (Booking, Agency, Plan, Review): 
 
 ```
-src/
-├── domain/                          # The hexagon — no frameworks, no external dependencies
-│   ├── [aggregate]/
-│   │   ├── [Aggregate].ts           # Aggregate Root with invariants
-│   │   ├── [Aggregate]Id.ts         # Value Object for the ID
-│   │   ├── events/
-│   │   │   └── [EventOccurred].ts   # Domain events
-│   │   ├── services/
-│   │   │   └── [DomainService].ts   # Logic that does not belong to any entity
-│   │   └── ports/                   # Interfaces (ports) — abstract contracts
-│   │       ├── in/
-│   │       │   └── [UseCasePort].ts # Driving port: use case contract
-│   │       └── out/
-│   │           └── [RepoPort].ts    # Driven port: repository contract
-│   └── shared/
-│       └── value-objects/           # VOs shared between aggregates
-│           ├── Email.ts
-│           └── Money.ts
+app/
+├── Domain/                          # The Hexagon — Zero dependencies
+│   ├── Booking/                     # Booking Aggregate
+│   │   ├── Model/
+│   │   │   ├── Booking.php          # Entity / Aggregate Root
+│   │   │   ├── BookingId.php        # ID Value Object
+│   │   │   ├── BookingStatus.php    # Enum / Value Object
+│   │   │   └── PassengersCount.php  # Validation Value Object
+│   │   ├── Events/
+│   │   │   ├── BookingRequested.php # Domain Event
+│   │   │   └── BookingApproved.php
+│   │   ├── Services/
+│   │   │   └── AvailabilityChecker.php
+│   │   └── Ports/
+│   │       ├── In/
+│   │       │   └── CreateBookingInputPort.php
+│   │       └── Out/
+│   │           ├── BookingRepositoryPort.php
+│   │           └── NotificationPublisherPort.php
+│   ├── Agency/                      # Agency Aggregate
+│   │   ├── Model/
+│   │   │   ├── Agency.php
+│   │   │   └── RNTNumber.php
+│   │   └── Ports/
+│   │       └── Out/
+│   │           └── AgencyRepositoryPort.php
+│   ├── Plan/                        # Tour Plan Aggregate
+│   └── Shared/                      # Shared Value Objects & Exceptions
+│       ├── ValueObjects/
+│       │   └── Money.php
+│       └── Exceptions/
+│           └── DomainException.php
 │
-├── application/                     # Use cases — orchestrate the domain
-│   └── [aggregate]/
-│       ├── [CreateXxxUseCase].ts    # Implements the driving port
-│       └── dtos/
-│           ├── [CreateXxxRequest].ts
-│           └── [CreateXxxResponse].ts
+├── Application/                     # Use Cases
+│   ├── Booking/
+│   │   ├── CreateBookingUseCase.php
+│   │   └── Dtos/
+│   │       ├── CreateBookingRequest.php
+│   │       └── CreateBookingResponse.php
+│   └── Agency/
+│       └── RegisterAgencyUseCase.php
 │
-├── infrastructure/                  # Everything external to the hexagon
-│   ├── adapters/
-│   │   ├── in/                      # Primary adapters — receive external calls
-│   │   │   ├── http/
-│   │   │   │   ├── [XxxController].ts
-│   │   │   │   └── [XxxRouter].ts
-│   │   │   └── messaging/
-│   │   │       └── [XxxEventConsumer].ts
-│   │   └── out/                     # Secondary adapters — call the outside
-│   │       ├── persistence/
-│   │       │   └── [XxxRepositoryImpl].ts   # Implements the driven port
-│   │       ├── messaging/
-│   │       │   └── [XxxEventPublisher].ts
-│   │       └── external/
-│   │           └── [ExternalApiAdapter].ts
-│   └── config/
-│       ├── database.ts
-│       └── container.ts             # Dependency injection (IoC)
-│
-└── main.ts                          # Bootstrap — connects adapters with ports
+└── Infrastructure/                  # External Layer (Laravel/Eloquent)
+    ├── Adapters/
+    │   ├── In/                      # Primary Adapters
+    │   │   ├── Http/
+    │   │   │   ├── Controllers/
+    │   │   │   │   └── BookingController.php
+    │   │   │   └── Requests/
+    │   │   │       └── StoreBookingHttpRequest.php
+    │   │   └── Console/
+    │   │       └── CancelExpiredBookingsCommand.php
+    │   └── Out/                     # Secondary Adapters
+    │       ├── Persistence/
+    │       │   ├── Eloquent/
+    │       │   │   ├── Models/
+    │       │   │   │   └── BookingModel.php
+    │       │   │   └── Mappers/
+    │       │   │       └── BookingMapper.php
+    │       │   └── EloquentBookingRepository.php
+    │       ├── Mail/
+    │       │   └── SmtpNotificationAdapter.php
+    │       └── Payment/
+    │           └── WompiPaymentAdapter.php
+    └── Providers/
+        └── HexagonalBindingsServiceProvider.php
 ```
 
----
+###  Port Specification
 
-## The Ports
+Ports are abstract interfaces in PHP. They are defined by the domain and implemented by the infrastructure.
 
-Ports are **interfaces** (abstract contracts). The domain defines them;
-adapters implement them.
+## Driving Port (Input Port)
+Defines the domain's API from the perspective of incoming requests (e.g., from the web or API).
 
-### Driving Port (Input Port)
+```php
+<?php
 
-Defines what the domain can do — its public API from the outside's perspective.
+namespace App\Domain\Booking\Ports\In;
 
-```typescript
-// src/domain/order/ports/in/CreateOrderPort.ts
-export interface CreateOrderPort {
-  execute(request: CreateOrderRequest): Promise<CreateOrderResponse>;
+use App\Application\Booking\Dtos\CreateBookingRequest;
+use App\Application\Booking\Dtos\CreateBookingResponse;
+
+interface CreateBookingInputPort
+{ 
+public function execute(CreateBookingRequest $request): CreateBookingResponse;
 }
 ```
 
-### Driven Port (Output Port)
+## Driven Port (Output Port)
+Defines what the domain requires from the outside world (persistence, email sending, payment gateways).
 
-Defines what the domain needs from the outside world — without knowing how it is implemented.
+```php
+<?php
 
-```typescript
-// src/domain/order/ports/out/OrderRepositoryPort.ts
-export interface OrderRepositoryPort {
-  save(order: Order): Promise<void>;
-  findById(id: OrderId): Promise<Order | null>;
-  findByCustomer(customerId: CustomerId): Promise<Order[]>;
+namespace App\Domain\Booking\Ports\Out;
+
+use App\Domain\Booking\Model\Booking;
+use App\Domain\Booking\Model\BookingId;
+
+interface BookingRepositoryPort
+{ 
+public function save(Booking $booking): void; 
+public function findById(BookingId $id): ?Booking; 
+public function getAvailableCapacityForDate(string $planId, \DateTimeImmutable $date): int;
 }
 
-// src/domain/order/ports/out/EventPublisherPort.ts
-export interface EventPublisherPort {
-  publish(event: DomainEvent): Promise<void>;
-}
-```
+<? php
 
----
+namespace App\Domain\Booking\Ports\Out;
 
-## The Adapters
+use App\Domain\Booking\Model\Booking;
+use App\Domain\Booking\Model\BookingId;
 
-### Primary Adapter — HTTP Controller
-
-The HTTP controller translates the HTTP request to the domain use case.
-
-```typescript
-// src/infrastructure/adapters/in/http/OrderController.ts
-import { CreateOrderPort } from '@domain/order/ports/in/CreateOrderPort';
-
-@Controller('/orders')
-export class OrderController {
-  constructor(
-    // Inject the port, NOT the concrete implementation
-    private readonly createOrder: CreateOrderPort,
-  ) {}
-
-  @Post('/')
-  async create(@Body() body: CreateOrderHttpRequest): Promise<void> {
-    // Translate HTTP request → domain DTO
-    const request = new CreateOrderRequest(body.customerId, body.items);
-    // Call the use case through the port
-    const response = await this.createOrder.execute(request);
-    return response;
-  }
+interface BookingRepositoryPort
+{ 
+public function save(Booking $booking): void; 
+public function findById(BookingId $id): ?Booking; 
+public function getAvailableCapacityForDate(string $planId, \DateTimeImmutable $date): int;
 }
 ```
+### Adapters
 
-### Secondary Adapter — Repository
+## Primary Adapter — HTTP Controller (Laravel)
+Receives the HTTP request, maps the data to an application DTO, and calls the input port. It does not contain business logic.
 
-The repository implements the driven port. The domain does not know PostgreSQL exists.
+```php
+<?php
 
-```typescript
-// src/infrastructure/adapters/out/persistence/OrderRepositoryImpl.ts
-import { OrderRepositoryPort } from '@domain/order/ports/out/OrderRepositoryPort';
+namespace App\Infrastructure\Adapters\In\Http\Controllers;
 
-export class OrderRepositoryImpl implements OrderRepositoryPort {
-  constructor(private readonly db: DatabaseConnection) {}
+use App\Http\Controllers\Controller;
+use App\Infrastructure\Adapters\In\Http\Requests\StoreBookingHttpRequest;
+use App\Application\Booking\Dtos\CreateBookingRequest;
+use App\Domain\Booking\Ports\In\CreateBookingInputPort;
+use Illuminate\Http\JsonResponse;
 
-  async save(order: Order): Promise<void> {
-    // Translate Aggregate → database row
-    await this.db.query(
-      'INSERT INTO orders (id, customer_id, status, total) VALUES ($1, $2, $3, $4)',
-      [order.id.value, order.customerId.value, order.status, order.total.amount],
-    );
-  }
+class BookingController extends Controller
+{ 
+// We inject the Interface (Entry Port), not the concrete implementation 
+public function __construct( 
+private readonly CreateBookingInputPort $createBookingUseCase 
+) {} 
 
-  async findById(id: OrderId): Promise<Order | null> {
-    const row = await this.db.queryOne('SELECT * FROM orders WHERE id = $1', [id.value]);
-    if (!row) return null;
-    // Translate database row → Aggregate
-    return OrderMapper.toDomain(row);
-  }
+public function store(StoreBookingHttpRequest $request): JsonResponse 
+{ 
+$dto = new CreateBookingRequest( 
+planId: $request->validated('plan_id'), 
+touristId: $request->user()->id, 
+travelDate: new \DateTimeImmutable($request->validated('travel_date')), 
+passengers: $request->validated('passengers'), 
+termsAccepted: $request->validated('terms_accepted') 
+); 
+
+$response = $this->createBookingUseCase->execute($dto); 
+
+return response()->json([ 
+'message' => 'Reservation created successfully', 
+'booking_id' => $response->bookingId, 
+'status' => $response->status 
+], 201); 
 }
+ }
 ```
+## Secondary Adapter — Eloquent Repository
+Implements the outbound port. Translates domain entities to MySQL database records using Eloquent and Mappers
 
----
+```php
+<?php
 
+namespace App\Infrastructure\Adapters\Out\Persistence;
+
+use App\Domain\Booking\Ports\Out\BookingRepositoryPort;
+use App\Domain\Booking\Model\Booking;
+use App\Domain\Booking\Model\BookingId;
+use App\Infrastructure\Adapters\Out\Persistence\Eloquent\Models\BookingModel;
+use App\Infrastructure\Adapters\Out\Persistence\Eloquent\Mappers\BookingMapper;
+
+class EloquentBookingRepository implements BookingRepositoryPort
+{ 
+public function save(Booking $booking): void 
+{ 
+// Mapper converts the Domain Entity to an Eloquent array/model 
+$data = BookingMapper::toPersistence($booking); 
+
+BookingModel::query()->updateOrCreate( 
+['id' => $booking->getId()->getValue()], 
+$data 
+); 
+} 
+
+public function findById(BookingId $id): ?Booking 
+{ 
+$model = BookingModel::query()->find($id->getValue()); 
+if (!$model) { 
+return null; 
+} 
+
+return BookingMapper::toDomain($model); 
+} 
+
+public function getAvailableCapacityForDate(string $planId, \DateTimeImmutable $date): int 
+{ 
+// Specific query to verify spaces in the plan calendar 
+return BookingModel::query() 
+->where('plan_id', $planId) 
+->whereDate('travel_date', $date->format('Y-m-d')) 
+->whereIn('status', ['PENDING', 'APPROVED']) 
+->sum('passengers_count'); 
+}
+ }
+```
 ## The Use Case (Application Service)
 
-The use case orchestrates the domain. It uses driving and driven ports. It contains no business logic — that lives in the Aggregate.
+This is the executor of the business processes. It receives the user request, applies the system rules using the entities, and requests the ports to save or send the information.
 
-```typescript
-// src/application/order/CreateOrderUseCase.ts
-import { CreateOrderPort } from '@domain/order/ports/in/CreateOrderPort';
-import { OrderRepositoryPort } from '@domain/order/ports/out/OrderRepositoryPort';
-import { EventPublisherPort } from '@domain/order/ports/out/EventPublisherPort';
+```php
+<?php
 
-export class CreateOrderUseCase implements CreateOrderPort {
-  constructor(
-    private readonly orderRepo: OrderRepositoryPort,
-    private readonly eventPublisher: EventPublisherPort,
-  ) {}
+namespace App\Application\Booking;
 
-  async execute(request: CreateOrderRequest): Promise<CreateOrderResponse> {
-    // 1. Create the aggregate (business logic lives HERE, in the domain)
-    const order = Order.create(request.customerId, request.items);
+use App\Domain\Booking\Ports\In\CreateBookingInputPort;
+use App\Domain\Booking\Ports\Out\BookingRepositoryPort;
+use App\Domain\Booking\Ports\Out\NotificationPublisherPort;
+use App\Application\Booking\Dtos\CreateBookingRequest;
+use App\Application\Booking\Dtos\CreateBookingResponse;
+use App\Domain\Booking\Model\Booking;
+use App\Domain\Booking\Exceptions\NoAvailableCapacityException;
 
-    // 2. Persist (through the port — the use case does not know which DB is used)
-    await this.orderRepo.save(order);
+class CreateBookingUseCase implements CreateBookingInputPort
+{ 
+public function __construct( 
+private readonly BookingRepositoryPort $bookingRepository, 
+private readonly NotificationPublisherPort $notificationPublisher 
+) {} 
 
-    // 3. Publish domain events (through the port)
-    for (const event of order.domainEvents) {
-      await this.eventPublisher.publish(event);
+public function execute(CreateBookingRequest $request): CreateBookingResponse 
+{ 
+// 1. Validate availability rules 
+$currentBooked = $this->bookingRepository->getAvailableCapacityForDate( 
+$request->planId, 
+$request->travelDate 
+); 
+
+// 2. Creation of the Aggregate in Domain (Applies HTE / RF10 / RF20 business rules) 
+$booking = Booking::create( 
+planId: $request->planId, 
+touristId: $request->touristId, 
+travelDate: $request->travelDate, 
+passengers: $request->passengers, 
+termsAccepted: $request->termsAccepted, 
+currentCapacityUsed: $currentBooked 
+); 
+
+// 3. Persist through the Port 
+$this->bookingRepository->save($booking); 
+
+// 4. Publish Domain Notification/Event 
+foreach ($booking->pullDomainEvents() as $event) { 
+$this->notificationPublisher->notifyBookingCreated($event); 
+} 
+
+return new CreateBookingResponse( 
+bookingId: $booking->getId()->getValue(), 
+status: $booking->getStatus()->getValue() 
+); 
+}
+ }
+```
+## The Dependency Rule
+It functions as the system connector. It teaches Laravel which actual tool (Adapter) to give to the application each time it requests a working contract (Port).
+
+```php
+<?php
+namespace App\Infrastructure\Providers;
+
+use Illuminate\Support\ServiceProvider;
+
+// Interfaces (Ports)
+use App\Domain\Booking\Ports\In\CreateBookingInputPort;
+use App\Domain\Booking\Ports\Out\BookingRepositoryPort;
+use App\Domain\Booking\Ports\Out\NotificationPublisherPort;
+
+// Implementations (Use Cases & Adapters)
+use App\Application\Booking\CreateBookingUseCase;
+use App\Infrastructure\Adapters\Out\Persistence\EloquentBookingRepository;
+use App\Infrastructure\Adapters\Out\Mail\SmtpNotificationAdapter;
+
+class HexagonalBindingsServiceProvider extends ServiceProvider
+{ 
+public function register(): void 
+{ 
+// Link Entry Port to Use Case 
+$this->app->bind( 
+CreateBookingInputPort::class, 
+CreateBookingUseCase::class 
+); 
+
+// Link Output Ports with Infrastructure Adapters 
+$this->app->bind( 
+BookingRepositoryPort::class, 
+EloquentBookingRepository::class 
+); 
+
+$this->app->bind( 
+NotificationPublisherPort::class, 
+SmtpNotificationAdapter::class 
+);
+
     }
-
-    return new CreateOrderResponse(order.id.value);
-  }
 }
 ```
+## Advantages for Automated Testing (TDD in HTE)
 
----
+Thanks to architecture independence, the development team can efficiently apply TDD:
 
-## The Dependency Rule
+- Isolation: Huila Travel Expedition's business rules are tested without launching Laravel or MySQL.
+- Speed: Unit tests run in milliseconds, facilitating rapid bug detection.
+- Reliability: Ensures that technical changes do not alter the domain's behavior.
 
-> **Dependencies always point inward.**
-> The domain does not import anything from application or infrastructure.
-> Infrastructure imports from the domain (but never the other way around).
+```php
+  <?php
 
+namespace Tests\Unit\Domain\Booking;
+
+use PHPUnit\Framework\TestCase;
+use App\Domain\Booking\Model\Booking;
+use App\Domain\Booking\Exceptions\TermsNotAcceptedException;
+
+class BookingTest extends TestCase
+{ 
+public function test_cannot_create_booking_without_accepting_terms(): void 
+{ 
+$this->expectException(TermsNotAcceptedException::class); 
+
+Booking::create( 
+planId: 'plan-123', 
+touristId: 'user-456', 
+travelDate: new \DateTimeImmutable('2026-10-15'), 
+passengers: 2, 
+termsAccepted: false, // RF20/RNF9 rule violation 
+currentCapacityUsed: 0 
+); 
+}
+ }
 ```
-infrastructure/ → application/ → domain/
-                                    ↑
-                         CANNOT import anything from application/ or infrastructure/
-```
+## Hexagonal Architecture Checklist for HTE
+Before submitting a Pull Request to the project's GitHub repository, verify the following:
 
-### Dependency inversion (DI) in practice
+- [ ] The Domain/ folder does not contain any use Illuminate\... or references to Eloquent.
+- [ ] All database operations are performed through interfaces located in Domain/Ports/Out/.
+- [ ] Controllers in Infrastructure/Adapters/In/Http/ only call incoming ports (Ports/In/).
+- [ ] Eloquent mappings to entities are performed using mappers within Infrastructure/.
+- [ ] Pure unit tests exist for the Domain entities (Booking, Agency, Plan).
 
-```typescript
-// ✓ Correct — domain defines the interface, infrastructure implements it
-// In domain/:
-export interface OrderRepositoryPort { ... }
+     ## Common Mistakes (Antipatterns)
 
-// In infrastructure/:
-export class OrderRepositoryImpl implements OrderRepositoryPort { ... }
+| Antipattern | Why it's bad | Solution |
+|:----------- |:------------ |:-------- |
+`use Illuminate\Database\Eloquent\Model` in the Domain | Couples business logic to Laravel's ORM | Define a custom Outbound Port (`Interface`) in the Domain. |
+Business logic within the HTTP Controller | If the route or request changes, the business rule breaks | Move the business rule to the corresponding Entity/Aggregate. |
+Repository returning an Eloquent Model or Array instead of an Entity | The Domain loses the ability to validate its rules and invariants | Use a `Mapper` to rebuild the Domain Entity. |
+Use case with more than 5 injected dependencies | The Use Case is taking on too many responsibilities | Break it down into smaller, more specific Use Cases. |
+| Use of `mixed` or generic `array` objects in interfaces | PHP's strict typing and design contract are lost | Use explicit typing, DTOs, and value objects. |
 
-// In the bootstrap (main.ts), the concrete implementation is injected:
-const orderRepo = new OrderRepositoryImpl(dbConnection);
-const createOrderUseCase = new CreateOrderUseCase(orderRepo, eventPublisher);
-const orderController = new OrderController(createOrderUseCase);
-```
-
----
-
-## Advantages for TDD
-
-Hexagonal architecture is ideal for TDD because:
-
-1. **The domain is testable without framework mocks.** You do not need to start a server
-   or a database to test business logic.
-
-2. **Driven ports can be faked easily.** In tests, you use an
-   in-memory repository (Fake) instead of the real one.
-
-3. **Invariants are explicit** and tested in isolation.
-
-```typescript
-// Domain unit test — zero external dependencies
-describe('Order', () => {
-  it('cannot be created without items', () => {
-    expect(() => Order.create(customerId, [])).toThrow('INV-001');
-  });
-
-  it('on confirm changes status to CONFIRMED', () => {
-    const order = Order.create(customerId, [validItem]);
-    order.confirm();
-    expect(order.status).toBe(OrderStatus.CONFIRMED);
-  });
-
-  it('on confirm emits OrderConfirmed event', () => {
-    const order = Order.create(customerId, [validItem]);
-    order.confirm();
-    expect(order.domainEvents).toContainEqual(expect.any(OrderConfirmedEvent));
-  });
-});
-
-// Use case test with FAKE repository (not a real DB mock)
-describe('CreateOrderUseCase', () => {
-  it('saves the order and publishes the event', async () => {
-    const fakeOrderRepo = new InMemoryOrderRepository();
-    const fakeEventPublisher = new InMemoryEventPublisher();
-    const useCase = new CreateOrderUseCase(fakeOrderRepo, fakeEventPublisher);
-
-    await useCase.execute(new CreateOrderRequest(customerId, [validItem]));
-
-    expect(fakeOrderRepo.orders).toHaveLength(1);
-    expect(fakeEventPublisher.events).toContainEqual(expect.any(OrderCreated));
-  });
-});
-```
-
-> See full TDD guide in `11-quality/tdd-guide.md`
 
 ---
 
-## Hexagonal Architecture Checklist
+## References and Correlations
 
-When reviewing a PR or new service, verify:
-
-- [ ] `domain/` has no imports from `infrastructure/` or `application/`
-- [ ] `domain/` has no imports from frameworks (Express, NestJS, TypeORM, etc.)
-- [ ] Every repository interface lives in `domain/ports/out/`
-- [ ] Every use case interface lives in `domain/ports/in/`
-- [ ] Mappers (`toDomain` / `toPersistence`) live in `infrastructure/`, not in `domain/`
-- [ ] HTTP API DTOs live in `infrastructure/adapters/in/http/`, not in `domain/`
-- [ ] There is a unit test for each Aggregate invariant
-
----
-
-## Common mistakes (anti-patterns)
-
-| Anti-pattern | Why it is bad | Solution |
-|-------------|--------------|---------|
-| `import { Repository } from 'typeorm'` in the domain | Couples the domain to TypeORM | Define your own port interface |
-| Business logic in the Controller | If you change the endpoint, you change the business | Move to the Aggregate |
-| Repository returning DTOs instead of Aggregates | The domain cannot validate invariants | Use Mapper to reconstruct the Aggregate |
-| Use case with 15 dependencies | It probably does too much | Split into smaller use cases |
-| `any` in port interfaces | You lose the typed contract | Always use explicit typing |
-
----
-
-## References and correlations
-
-- Bounded Contexts → `02-domain/domain-map.md`
-- Entities and invariants → `02-domain/entities-and-rules.md`
-- Domain events → `02-domain/domain-events.md`
-- Complementary patterns (CQRS, Event Sourcing, Saga) → `05-architecture/pattern-guide.md`
-- TDD applied to hexagonal architecture → `11-quality/tdd-guide.md`
-- Service template with hexagonal structure → `09-microservices/_template/service/`
+- **Bounded Contexts:** `app/Domain/Booking`, `app/Domain/Agency`, `app/Domain/Plan`
+- **Entities and Invariants:** Pure business rules in `app/Domain/{Context}/Model/`
+- **Domain Events:** `app/Domain/{Context}/Events/` (e.g., `BookingRequested`, `BookingApproved`)
+- **Dependency Injection:** Bindings registered in `app/Infrastructure/Providers/HexagonalBindingsServiceProvider.php`
+- **Automated Testing (TDD):** Execution guide with PHPUnit/Pest in `tests/Unit/Domain/`
