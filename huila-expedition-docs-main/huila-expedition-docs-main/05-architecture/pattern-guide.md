@@ -110,3 +110,117 @@ return new PaymentResponse($response->id, $response->status === 'APPROVED');
 }
  }
 ```
+### 5. Decorator
+
+**Problem:** Adding caching or audit logging layers to catalog queries without modifying the repositories.
+
+**When to use:** Optimizing read operations for featured plans or verifying real-time availability using Redis.
+
+**Example domain**
+```php
+class CachedPlanRepository implements PlanRepositoryInterface {
+    public function __construct(
+        private PlanRepositoryInterface $repository,
+        private CacheManager $cache
+    ) {}
+
+    public function findFeatured(): array {
+        return $this->cache->remember('featured_plans', 3600, function() {
+            return $this->repository->findFeatured();
+        });
+    }
+}
+```
+### 6. Observer (Event Bus)
+
+**Problem:** Notify the agency, send transactional emails, and update availability when a reservation's status changes.
+
+**When to use it:** Decoupling business events (ReservationCreated, ReservationApproved) from the core logic.
+
+**Example domain**
+
+```php
+// Event registration and listener in Laravel
+class ReservaObserver {
+    public function updated(Reserva $reserva) {
+        if ($reserva->wasChanged('estado') && $reserva->estado === 'aprobada') {
+            event(new ReservaAprobadaEvent($reserva));
+        }
+    }
+}
+```
+### 7. Strategy
+
+**Problem:** Applying different rate calculation methods (differentiated rates for children, adults, groups, or seasons).
+
+**When to use it:** Dynamic price calculation during the booking process.
+
+**Example domain**
+
+```php
+interface CalculoTarifaStrategy {
+    public function calcular(float $precioBase, int $cantidad): float;
+}
+
+class TarifaGrupoStrategy implements CalculoTarifaStrategy {
+    public function calcular(float $precioBase, int $cantidad): float {
+        $descuento = $cantidad >= 10 ? 0.15 : 0.0;
+        return ($precioBase * $cantidad) * (1 - $descuento);
+    }
+}
+```
+### 8. Template Method
+
+**Problem:** Exporting reservation and sales reports in multiple formats (PDF, Excel) while sharing the same data filtering and preparation structure.
+
+**When to use it:** Generating system documents and reports (RF18).
+
+**Example domain**
+
+```php
+abstract class ReportExporter {
+    final public function export(array $filters) {
+        $data = $this->getData($filters);
+        $processedData = $this->processFormats($data);
+        return $this->generateFile($processedData);
+    }
+
+    abstract protected function generateFile(array $data);
+    
+    protected function getData(array $filters) {
+        return Reserva::whereBetween('created_at', [$filters['start'], $filters['end']])->get();
+    }
+}
+```
+## Microservices Patterns / Architecture
+
+### Decomposition {#decomposition}
+
+#### API Gateway
+
+**Problem:** Tourists and agencies need to access various modules (Authentication, Bookings, Catalog, Reports) via the web or mobile application.
+
+ ```
+                     ┌─────────────────────────┐
+Tourists (Web) ───▶ │                         │ ──▶ [Authentication Module]
+Agencies (Panel) ──▶│  API Gateway / Router   │ ──▶ [Catalog/Plans Module]
+Mobile (Future) ──▶ │                         │ ──▶ [Booking/Calendar Module]
+                     └─────────────────────────┘
+                               Handles:
+                    - REST API routing
+                    - JWT / Session authentication
+                    - Rate limiting (request limits)
+                    - SSL/HTTPS termination
+```
+**When to use it:** Essential for centralizing entry points, validating access tokens, and enforcing security (HTTPS / CORS).
+
+**Recommended tools:** Laravel Router / NGINX / Traefik / Kong.
+
+#### Backeend for Frontend  (BFF)       
+
+**Problem:** The tourist-facing web application displays lightweight visual cards, whereas the agency dashboard requires dense inventory data and calendars.
+
+```
+Turista Web ──▶ [BFF Turistas]  ──▶ Servicios del sistema HTE
+Panel Agencia ─▶ [BFF Agencias]  ──▶ Servicios del sistema HTE
+```
